@@ -1,0 +1,1 @@
+export type StorageAction = 'ChangeProfileImage' | null | undefined

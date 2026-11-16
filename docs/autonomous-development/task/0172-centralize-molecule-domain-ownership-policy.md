@@ -1,0 +1,128 @@
+# 0172 - Centralize molecule-domain ownership policy
+
+- [x] DONE
+- [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
+## Objective
+
+Provide one batch-aware ownership/existence policy for molecule collections, molecule items and joins so every command classifies owner, missing and forbidden cases consistently without repeating ad-hoc repository queries and error messages.
+
+Source: `DATA-023` in Series `0001`.
+
+## Context
+
+Molecule services currently use multiple patterns: `exists({ id, userId })`, owner-filtered finds, `assertCollectionOwnership()`, `assertItemOwnership()`, filtering requested IDs down to owned IDs and command-specific `false` results. The same logical resource can therefore produce different outcomes depending on which service path was called. Bulk operations also need set-wise ownership validation rather than N individual checks.
+
+## Relevant files and modules
+
+- molecule-collection services/resolvers
+- molecule item/custom/ChEMBL services
+- `MoleculeCollectionItemJoinService`
+- collection/item/join entities
+- ownership audit documentation
+- typed application errors
+- Unit of Work from `0152`
+
+## In scope
+
+- Define canonical ownership repository/policy APIs for one resource and batches.
+- Distinguish requested, owned, missing and foreign IDs internally without leaking existence beyond the approved transport policy.
+- Reuse one owner-scoped query strategy across collection/item/join commands.
+- Provide batch assertions/classification for bulk commands.
+- Remove duplicate `assert*Ownership`/filter helpers once migrated.
+- Standardize typed error/outcome behavior across CRUD and bulk paths.
+- Add contract tests that run the same ownership matrix through multiple entrypoints.
+
+## Out of scope
+
+- Do not create a global authorization service for unrelated domains.
+- Do not change scope/role authorization handled by guards/metadata.
+- Do not define `selectAll` snapshot semantics; `0173` owns that.
+
+## Decisions already made
+
+- Resource ownership is a domain/persistence invariant distinct from transport-level scopes.
+- Public responses may deliberately map foreign and missing resources to the same result, while internal classification can remain richer for auditing.
+- Batch checks must use set-based queries, not one SQL query per ID.
+
+## Requirements
+
+1. Inventory all collection/item/join ownership checks and their current missing/forbidden behavior.
+2. Define a small molecule-domain ownership port/repository with single and batch operations.
+3. Use the caller's transaction manager when invoked inside a Unit of Work.
+4. Return/throw canonical typed classifications and centralize the public disclosure mapping.
+5. Migrate create/update/delete/bind/remove/touch operations that currently duplicate ownership checks.
+6. Ensure batch operations can require complete ownership or explicitly return rejected IDs depending on command semantics.
+7. Add tests for owner, foreign, missing, mixed batch and concurrent deletion cases.
+
+## Acceptance criteria
+
+- [ ] Molecule-domain commands no longer implement their own ownership query/error vocabulary.
+- [ ] Single and batch ownership checks are owner-scoped and transaction-aware.
+- [ ] The same resource state yields the same public outcome across entrypoints.
+- [ ] Mixed-owner batches cannot partially mutate unless the command explicitly defines partial semantics.
+- [ ] Ownership tests prevent N+1 validation queries.
+
+## Validation
+
+Run molecule collection/item/join service and resolver tests, ownership matrix integration tests with two users, SQL query-count checks for batches, Nest lint/typecheck/build/tests and CI parity.
+
+## Browser validation
+
+Exercise at least one collection/item mutation through `http://localhost:8888`; direct cross-owner cases remain integration/API tests rather than browser manipulation.
+
+## Stop conditions
+
+Mark `BLOCKED` if existing product behavior intentionally differs between missing and foreign resources in ways not documented by the canonical error/security contract and a disclosure decision is required.
+
+## Dependencies
+
+- `0171-decompose-molecule-bulk-join-planning-and-write-sets.md` should be `DONE`.
+- `0127`/`0128` error contract and `0152` Unit of Work must be `DONE`.
+
+## Implementation notes
+
+Avoid a generic `owns(entityName, id)` API. Typed per-resource operations preserve compile-time safety and allow efficient joins/composite ownership constraints.
+
+## Execution notes
+
+### Feature branch
+`feature/DATA-023` (base `f254d2b17fb732184a9a5f5793c0d5e49d20025d`)
+### Preflight
+Clean feature branch at the supplied base SHA; exact base CI run `35089906006`
+completed successfully with the required gate. Local `commit.gpgSign` is
+`false`. No workspace-consuming process was active before task work.
+### Preflight remediation
+None.
+### Summary
+Added `MoleculeOwnershipPolicy`, a typed molecule-domain policy that classifies
+owned, missing and foreign single/batch resources with set-based manager
+queries. Join planning and custom/ChEMBL collection mutations now use the
+transaction manager policy assertions rather than local ownership queries.
+Mixed batches can be asserted atomically and policy tests cover owner,
+foreign, missing and no-N+1 behavior.
+### Task-specific validation performed
+- `npm --prefix MercurionWebNode test -- --runInBand app_modules/molecule-collection/services/molecule-ownership.policy.spec.ts app_modules/molecule-collection/services/molecule-collection-item-join.service.spec.ts app_modules/molecule-collection/services/custom-molecule-item.service.spec.ts app_modules/molecule-collection/services/chembl-molecule-item.service.spec.ts` — 4 suites, 6 tests passed.
+- `npm --prefix MercurionWebNode run typecheck` — passed.
+- Focused ESLint over changed molecule services — passed.
+- `git diff --check` — passed.
+### Full pre-merge CI-parity validation
+Reserved for GitHub Actions on the exact pushed feature SHA; forbidden to run
+`npm ci` or `npm run ci:check` locally.
+### Browser validation performed
+Canonical runtime started in required order (Tox21, Nest, Angular) and all
+three sessions remained alive. Nginx readiness completed two consecutive
+rounds with `/health` and `/` returning 200 after an initial retryable 502.
+Using the dedicated Chrome DevTools profile, performed a fresh ordinary login
+through `http://localhost:8888/login`, then created and observed the collection
+`DATA023 Ownership Smoke` through the collections UI. Runtime sessions were
+stopped afterward and no task-owned runtime remained.
+### Commits
+- `5d44f96b395042feb76d6f24dabe6b7fd522ddf` — `feat(DATA-023): centralize molecule ownership policy`
+### Merge / CI
+_Not started._
+### Rollback
+_Not applicable._
+### Blocker / human decision required
+_None._

@@ -1,0 +1,54 @@
+import {
+  Injectable,
+  NgZone
+} from '@angular/core'
+import {
+  HttpEvent,
+  HttpErrorResponse,
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest
+} from '@angular/common/http'
+import { Observable } from 'rxjs'
+import { tap } from 'rxjs/operators'
+import { AuthSessionRepository } from '../services/auth-session-repository.service'
+import { AuthStateStore } from '../services/auth-state.store'
+import { classifyAuthResponse } from './auth-error.util'
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+
+  constructor(
+    private readonly authService: AuthSessionRepository,
+    private readonly authState: AuthStateStore,
+    private zone: NgZone
+  ) { }
+
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+
+    const token = this.authService.getAccessToken()
+    const authReq = token
+      ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+      : req
+
+    return next.handle(authReq).pipe(
+      tap({
+        next: event => {
+          this.handleAuthEvent(event)
+        },
+        error: error => {
+          this.handleAuthEvent(error)
+        }
+      })
+    )
+  }
+
+  private handleAuthEvent(event: HttpEvent<unknown> | HttpErrorResponse): void {
+    const authEvent = classifyAuthResponse(event)
+    if (authEvent.kind === 'token-rotated') {
+      this.authState.rotateAccessToken(authEvent.token)
+    } else if (authEvent.kind === 'session-invalidated') {
+      this.zone.run(() => this.authState.invalidate(authEvent.cause))
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "auditedPackages": {
+    "@angular/animations": {
+      "direct": "forbidden",
+      "dependencyType": "direct",
+      "scope": "runtime",
+      "role": "legacy Angular animation provider"
+    },
+    "ngx-spinner": {
+      "direct": "forbidden",
+      "dependencyType": "direct",
+      "scope": "runtime",
+      "role": "obsolete global spinner"
+    },
+    "subscriptions-transport-ws": {
+      "direct": "forbidden",
+      "dependencyType": "direct",
+      "scope": "runtime",
+      "role": "legacy GraphQL subscription transport"
+    },
+    "scmp": {
+      "direct": "forbidden",
+      "dependencyType": "direct",
+      "scope": "runtime",
+      "role": "unowned direct cryptographic helper"
+    },
+    "thumbmarkjs": {
+      "direct": "forbidden",
+      "dependencyType": "direct",
+      "scope": "runtime",
+      "role": "Thumbmark v0 fingerprint package"
+    },
+    "@thumbmarkjs/thumbmarkjs": {
+      "direct": "approved",
+      "dependencyType": "direct",
+      "scope": "runtime",
+      "version": "0.20.2",
+      "owner": "Web platform",
+      "role": "canonical fingerprint adapter"
+    },
+    "nats": {
+      "direct": "approved",
+      "dependencyType": "direct",
+      "scope": "runtime",
+      "version": "2.29.3",
+      "owner": "Scientific platform",
+      "role": "typed versioned NATS adapter"
+    },
+    "quill": {
+      "direct": "approved",
+      "dependencyType": "direct",
+      "scope": "runtime",
+      "version": "2.0.2",
+      "owner": "Support UI",
+      "role": "lazy editor dependency"
+    },
+    "@rdkit/rdkit": {
+      "direct": "approved",
+      "dependencyType": "direct",
+      "scope": "runtime",
+      "version": "2024.3.5-1.0.0",
+      "owner": "Chemistry UI",
+      "role": "lazy scientific rendering dependency"
+    }
+  },
+  "transitiveExceptions": [
+    {
+      "package": "@angular/animations",
+      "version": "20.3.30",
+      "dependencyType": "transitive optional peer",
+      "scope": "runtime metadata",
+      "owner": "Angular platform",
+      "reason": "Optional peer metadata published by @angular/platform-browser; the application has no provider or source import.",
+      "upstream": "https://github.com/angular/angular",
+      "presence": "optional-peer",
+      "removalDeadline": "2027-03-31",
+      "removalTrigger": "Remove when the Angular platform no longer declares the optional peer."
+    },
+    {
+      "package": "subscriptions-transport-ws",
+      "version": "0.11.0",
+      "dependencyType": "transitive optional compatibility",
+      "scope": "runtime metadata",
+      "owner": "Web platform",
+      "reason": "Optional compatibility metadata retained by Apollo Client and Nest GraphQL while the application uses the canonical ws-based transport.",
+      "upstream": "https://github.com/apollographql/subscriptions-transport-ws",
+      "removalDeadline": "2027-03-31",
+      "removalTrigger": "Remove when Apollo Client and Nest GraphQL stop publishing the optional legacy peer."
+    },
+    {
+      "package": "scmp",
+      "version": "2.1.0",
+      "dependencyType": "transitive",
+      "scope": "runtime",
+      "owner": "Communications platform",
+      "reason": "Transitive Twilio dependency; Mercurion has no direct import or ownership of this helper.",
+      "upstream": "https://github.com/emilbayes/scmp",
+      "removalDeadline": "2027-03-31",
+      "removalTrigger": "Remove when the selected Twilio release no longer depends on scmp."
+    }
+  ],
+  "warningReport": "docs/autonomous-development/dependency-warning-report.json"
+}

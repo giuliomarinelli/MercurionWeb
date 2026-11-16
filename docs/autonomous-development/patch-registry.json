@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "patchDirectories": [
+    "MercurionWebNg/patches",
+    "MercurionWebNode/patches"
+  ],
+  "retainedPatches": [
+    {
+      "package": "@rdkit/rdkit",
+      "resolvedVersion": "2024.3.5-1.0.0",
+      "patchPath": "MercurionWebNg/patches/@rdkit+rdkit+2024.3.5-1.0.0.patch",
+      "targetFiles": [
+        "node_modules/@rdkit/rdkit/dist/RDKit_minimal.js"
+      ],
+      "owner": "Chemistry UI",
+      "rationale": "The pinned browser distribution needs a parser-compatible function wrapper so Angular can bundle the lazy RDKit adapter without changing the vendor API or eager bundle boundary.",
+      "behavioralImpact": "Keeps lazy RDKit initialization and browser molecule rendering available while preserving the approved CommonJS exception.",
+      "upstreamReference": "https://github.com/rdkit/rdkit/issues",
+      "removalDeadline": "2027-03-31",
+      "removalCondition": "Remove when the selected @rdkit/rdkit release ships a browser distribution accepted by the Angular builder without this wrapper delta.",
+      "regressionTest": "scripts/test-rdkit-patch-regression.mjs",
+      "delta": {
+        "before": [
+          "-function(moduleArg = {}) {",
+          "-  var moduleRtn;"
+        ],
+        "after": [
+          "+    function (moduleArg = {}) {",
+          "+      var moduleRtn;"
+        ]
+      }
+    },
+    {
+      "package": "@nestjs-modules/mailer",
+      "resolvedVersion": "2.3.7",
+      "patchPath": "MercurionWebNode/patches/@nestjs-modules+mailer+2.3.7.patch",
+      "targetFiles": [
+        "node_modules/@nestjs-modules/mailer/dist/interfaces/mailer-options.interface.d.ts"
+      ],
+      "owner": "Notification backend",
+      "rationale": "Mailer 2.3.7 uses namespace imports as transport class types and declares message defaults as transport options, which conflicts with Nodemailer 10 types.",
+      "behavioralImpact": "Corrects declaration types for Nodemailer 10 without changing mail delivery at runtime.",
+      "upstreamReference": "https://github.com/nodemailer/nodemailer#i-have-an-issue-with-typescript-types",
+      "removalDeadline": "2027-03-31",
+      "removalCondition": "Remove when the selected mailer release supports Nodemailer 10 transport class imports and MailDefaults in its declarations.",
+      "regressionTest": "scripts/test-mailer-nodemailer10-patch-regression.mjs",
+      "delta": {
+        "before": [
+          "-import * as SMTPTransport from 'nodemailer/lib/smtp-transport';",
+          "-    defaults?: Options;"
+        ],
+        "after": [
+          "+import type SMTPTransport from 'nodemailer/lib/smtp-transport';",
+          "+    defaults?: MailDefaults;"
+        ]
+      }
+    }
+  ],
+  "removedPatches": [
+    {
+      "package": "minimatch",
+      "historicalPatchPath": "MercurionWebNg/patches/minimatch+3.1.5.patch",
+      "removedAfter": "0210",
+      "reason": "The current dependency graph governs minimatch through package-manager overrides; no repository patch remains or is required."
+    },
+    {
+      "package": "@as-integrations/fastify",
+      "historicalPatchPath": "MercurionWebNode/patches/@as-integrations+fastify+2.1.1.patch",
+      "removedAfter": "0210",
+      "reason": "The Fastify integration now uses the resolved supported release without a repository patch."
+    }
+  ]
+}

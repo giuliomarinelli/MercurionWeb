@@ -1,0 +1,4 @@
+.mfa-submit { min-height: 48px; width: 100%; padding: .625rem 1rem; border-radius: var(--m-radius-control); color: var(--m-color-on-control-filled); background: var(--m-color-control-primary); font-weight: 600; }
+.mfa-submit:hover:not(:disabled) { background: var(--m-color-control-primary-hover); }
+.mfa-submit:disabled { opacity: .55; cursor: not-allowed; }
+.mfa-submit:focus-visible { outline: 2px solid var(--m-color-focus); outline-offset: 3px; }

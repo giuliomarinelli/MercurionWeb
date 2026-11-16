@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "checks": [
+    "unknown-table-rejected",
+    "external-dependency-rejected",
+    "existing-user-rejected",
+    "embedding-rows-oids-and-index-files-preserved",
+    "sso-style-insert-without-timestamps",
+    "columns-defaults-constraints-indexes-triggers-functions-sequences-match-reference",
+    "optional-country-reference-data-and-identity-sequence",
+    "read-only-application-data-inventory"
+  ],
+  "applicationTableCount": 33,
+  "embeddingTestRows": 17,
+  "vmAccessed": false
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "servers": {
+    "postgres-preview": "mercurion-u6d019947800b4578bc2b5d40791f5132-preview",
+    "redis-preview": "mercurion-u6d019947800b4578bc2b5d40791f5132-preview",
+    "nats-preview": "mercurion-u6d019947800b4578bc2b5d40791f5132-preview",
+    "meilisearch": "mercurion-u6d019947800b4578bc2b5d40791f5132-shared"
+  },
+  "cloudflaredContainer": "mercurion-shared-cloudflared-1"
+}

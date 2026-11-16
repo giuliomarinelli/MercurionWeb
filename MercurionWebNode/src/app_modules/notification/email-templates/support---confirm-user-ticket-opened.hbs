@@ -1,0 +1,8 @@
+{{#> layouts/email-shell title="Mercurion: assistenza" footer="Se non hai richiesto assistenza, puoi ignorare questa email."}}
+<h1>Ciao {{userFirstName}}!</h1>
+<p>È stato aperto il ticket <strong>#{{ticketPublicId}}</strong>.</p>
+<p class="muted">Riceverai una risposta dal supporto entro 48-72 ore.</p>
+<div class="button-wrapper"><a href="{{url}}" class="btn-primary">Apri il ticket</a></div>
+<p class="muted">Se il pulsante non funziona, copia e incolla questo link nel tuo browser:</p>
+<p class="fallback-link">{{url}}</p>
+{{/layouts/email-shell}}

@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "namespace": "Demo25",
+  "snapshotDate": "2026-10-30",
+  "molecules": [
+    {
+      "key": "aspirin",
+      "source": "CHEMBL25",
+      "displayName": "Aspirina",
+      "notes": "Campione pubblico ChEMBL. Confrontare formula, struttura e descrittori; nessuna valutazione clinica o di sicurezza."
+    },
+    {
+      "key": "caffeine",
+      "source": "CHEMBL113",
+      "displayName": "Caffeina",
+      "notes": "Campione pubblico ChEMBL. Esempio con anelli eterociclici; usare la ricerca e il viewer per esplorare la struttura."
+    },
+    {
+      "key": "paracetamol",
+      "source": "CHEMBL112",
+      "displayName": "Paracetamolo",
+      "notes": "Nome ufficiale della fonte: ACETAMINOPHEN. Confrontare i descrittori con gli altri campioni senza dedurre equivalenza terapeutica."
+    },
+    {
+      "key": "aspirin-personal",
+      "source": "CHEMBL25",
+      "type": "custom",
+      "displayName": "Acido acetilsalicilico — campione personale per confronto e annotazioni di struttura",
+      "omitProperties": true,
+      "notes": "Copia dimostrativa della struttura CHEMBL25, non una nuova molecola. I descrittori sono intenzionalmente assenti per mostrare lo stato dati mancanti.\n\nLa nota lunga serve a verificare leggibilità e ritorno a capo durante la review. Qualsiasi modifica nell’editor richiede un nuovo calcolo remoto prima del salvataggio; non trasferire nome, formula o proprietà della struttura precedente a quella modificata."
+    }
+  ],
+  "collections": [
+    {
+      "key": "reference",
+      "name": "Molecole di riferimento · Demo25",
+      "moleculeKeys": [
+        "aspirin",
+        "caffeine",
+        "paracetamol"
+      ]
+    },
+    {
+      "key": "comparison",
+      "name": "Confronto dei descrittori e annotazioni di struttura — revisione esplorativa · Demo25",
+      "moleculeKeys": [
+        "aspirin",
+        "aspirin-personal"
+      ]
+    },
+    {
+      "key": "empty",
+      "name": "Nuovo progetto · Demo25",
+      "moleculeKeys": []
+    }
+  ],
+  "notifications": [
+    {
+      "key": "unread",
+      "title": "[Demo25] Esempio di notifica da leggere",
+      "summary": "Contenuto dimostrativo per il Centro notifiche.",
+      "body": "Messaggio sintetico locale. Non segnala un evento reale, un risultato scientifico o una risposta del supporto.",
+      "read": false
+    },
+    {
+      "key": "read",
+      "title": "[Demo25] Esempio di notifica letta",
+      "summary": "Testo lungo per verificare la leggibilità su schermi compatti e il ritorno alla lista.",
+      "body": "Contenuto sintetico per dimostrare gli stati letto e non letto. Nessuna e-mail o SMS viene inviato.",
+      "read": true
+    }
+  ]
+}

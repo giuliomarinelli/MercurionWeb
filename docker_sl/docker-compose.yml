@@ -1,0 +1,123 @@
+
+# Configurazione Docker Compose per ambiente di sviluppo e testing
+
+services:
+
+  redis_sl:
+    image: redis@sha256:4521b581dbddea6e7d81f8fe95ede93f5648aaa66a9dacd581611bf6fe7527bd # Redis 8.2.2
+    container_name: redis_sl
+    ports:
+      - "6378:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass root
+      --notify-keyspace-events Exg
+      --save "900 1"
+      --save "300 10"
+      --save "60 10000"
+      --dbfilename dump.rdb
+      --dir /data
+      --maxmemory 256mb
+      --maxmemory-policy volatile-ttl
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a root ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      REDIS_PASSWORD: root
+    networks:
+      - spectralume_network
+
+
+
+  nats_sl:
+    image: nats@sha256:77a161c7d888a1791d5a46b50cd87a2f8466ce40a33cbb51238d227ace01e35a # v2.12.1
+    container_name: nats_sl
+    ports:
+      - "4223:4222"
+      - "6223:6222"
+      - "8223:8222"
+    restart: unless-stopped
+    volumes:
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
+    command: ["-c", "/etc/nats/nats.conf"]
+    networks:
+      - spectralume_network
+    
+
+  pg_sl:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    image: local/postgres16-pgvector
+    container_name: pg_sl
+    shm_size: "4gb"
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: rootpassword
+      POSTGRES_DB: mercurion
+    command: >
+      postgres
+      -c shared_buffers=4GB
+      -c work_mem=128MB
+      -c maintenance_work_mem=4GB
+      -c max_parallel_maintenance_workers=2
+    ports: ["5431:5432"]
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d mercurion"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - spectralume_network
+  
+  meilisearch_sl:
+    image: getmeili/meilisearch@sha256:8cd411ba5d9ec2dfce02e241305208eebacce0fd74a72bece21cadd03dc566ce
+    container_name: meilisearch_sl
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_MASTER_KEY: root 
+    volumes:
+      - meili_data:/meili_data
+    restart: unless-stopped
+    networks:
+      - spectralume_network
+
+  nginx_sl_dev:
+    image: nginx:1.27-alpine
+    container_name: nginx_sl_dev
+    ports:
+      - "0.0.0.0:8888:80"
+    volumes:
+      - ./nginx_dev/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../MercurionLandingFactory/dist/MercurionLandingFactory/browser:/usr/share/nginx/html/mercurion-errors:ro
+    networks:
+      - spectralume_network
+    restart: unless-stopped
+
+
+volumes:
+  redis_data:
+    external: true
+    name: docker_sl_redis_data
+  pg_data:
+    external: true
+    name: docker_sl_pg_data
+  meili_data:
+    external: true
+    name: docker_sl_meili_data
+
+
+networks:
+  spectralume_network:
+    driver: bridge
+    name: spectralume_network

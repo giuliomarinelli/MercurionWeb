@@ -1,0 +1,193 @@
+# 0070 - Create the canonical page and section state primitive
+
+- [x] DONE
+- [ ] BLOCKED
+- [ ] REVERTED
+- [ ] SKIPPED_DEPENDENCY
+
+## Objective
+
+Create one exhaustive page/section state primitive for loading, empty, error, content and retry presentation so feature views stop representing asynchronous state with unrelated local markup and branching conventions.
+
+Source: `UI-012` in Series `0001`.
+
+## Context
+
+Loading, empty, error and retry states are currently rendered differently across features. Some views switch between spinners/skeletons/content, others embed error text or retry buttons locally. This produces inconsistent semantics and often permits impossible combinations such as content and error flags being true simultaneously.
+
+## Relevant files and modules
+
+- list/search/detail pages and action components with async state
+- `LoadingContextService` replacement/controller from `0046`
+- existing spinner/skeleton components
+- canonical Button from `0059`
+- progress/skeleton consolidation task `0071`
+
+## In scope
+
+- Define an exhaustive discriminated UI-state contract.
+- Implement a stateless renderer/shell for loading, empty, error, content and retry states.
+- Standardize accessible status/error/empty semantics.
+- Migrate representative and then compatible feature state branches.
+- Ensure retry is an explicit caller command/action.
+- Add state/component tests.
+
+## Out of scope
+
+- Choosing which spinner/skeleton visual is canonical (`0071`).
+- Network retry/backoff policy.
+- Domain-specific error-message mapping.
+
+## Decisions already made
+
+- View state is mutually exclusive through a discriminated union rather than independent booleans.
+- The feature/facade owns data fetching and retry command; the primitive only renders state and emits retry intent.
+- Error details exposed to users remain public/safe messages from the canonical error model.
+- Loading state may project a task-appropriate skeleton, while the surrounding state semantics remain canonical.
+
+## Requirements
+
+1. Inventory common async view-state branches and identify their current state combinations.
+2. Define a discriminated state type that makes impossible combinations unrepresentable.
+3. Implement canonical loading/empty/error/content/retry regions with correct ARIA status/alert semantics.
+4. Support projected content and projected/configured loading skeleton without coupling to feature services.
+5. Use canonical Button for retry actions.
+6. Migrate compatible page/section state handling without changing fetch/retry policy.
+7. Add tests for every state and state transition, including no stale content leaking into terminal error/empty states unless explicitly part of the chosen state.
+
+## Acceptance criteria
+
+- [ ] Compatible async views use one exhaustive state contract/primitive.
+- [ ] Loading, empty, error and content cannot be simultaneously represented through unrelated booleans.
+- [ ] Retry is accessible and caller-owned.
+- [ ] Public error/empty semantics are consistent.
+- [ ] Existing fetch behaviour remains compatible.
+- [ ] Angular tests/build and canonical CI gates pass.
+
+## Validation
+
+Run state primitive tests and representative migrated page/facade tests, then canonical CI-parity validation.
+
+## Browser validation
+
+Through `http://localhost:8888`, exercise or fixture representative loading, empty, error/retry and content states. Inspect status/error semantics, focus after retry and mobile/dark rendering.
+
+## Stop conditions
+
+Mark `BLOCKED` if a feature requires a materially distinct stale-data/revalidation state whose product semantics are not specified. Do not collapse stale content into ordinary loading/error without an explicit decision.
+
+## Dependencies
+
+- `0059-create-the-canonical-button-primitive.md`
+- `0046-unify-loading-and-search-transition-control.md`
+
+## Implementation notes
+
+The primitive may expose a typed stale/revalidating variant only if existing repository behaviour clearly requires and defines it; otherwise keep the state machine minimal.
+
+## Execution notes
+
+### Current implementation (2026-09-12, feature/UI-012)
+
+### Feature branch
+`feature/UI-012`, based on `origin/develop` /
+`d94a4edd078226b353e4e0e5a7e3e94fe159af91`.
+
+### Preflight
+- Confirmed the clean exact base and successful GitHub Actions CI run
+  `34662840295` for that SHA.
+- Confirmed no task-owned Angular, Nest, Tox21, or test watcher was active
+  before runtime validation.
+- Started the canonical Tox21, Nest, and Angular processes in the required
+  order for both runtime probes. Angular and Nest compiled successfully; the
+  nginx edge returned two consecutive complete `200` readiness rounds for
+  `/health` and `/`.
+- Initial edge `502` responses occurred only while the declared processes were
+  compiling and were retried according to `RUNTIME.md`.
+
+### Implementation
+- Added `PageState<T>`, an exhaustive discriminated union for loading, empty,
+  error, retry, and content states.
+- Added standalone `PageStateComponent` (`m-page-state`) with projected
+  loading skeleton and content regions, consistent status/alert semantics,
+  canonical `m-button` retry action, and caller-owned retry output.
+- Added component coverage for every state, projected loading, retry emission,
+  ARIA semantics, transitions, and stale-content exclusion.
+
+### Task-specific validation performed
+- `npm run typecheck --workspace mercurion_web_ng` — passed.
+- `npm run lint --workspace mercurion_web_ng` — passed with existing warnings.
+- `npm run test:ci --workspace mercurion_web_ng` — `440 SUCCESS`.
+- `npm run build --workspace mercurion_web_ng` — passed with existing bundle and
+  CommonJS warnings.
+- No `npm ci` or `npm run ci:check` was run locally.
+
+### Browser validation performed
+- Through `http://localhost:8888`, post-implementation readiness passed for
+  `/health` and `/`.
+- Chrome DevTools MCP opened the persistent-profile application at
+  `/dashboard`; the dashboard rendered accessible live regions and authenticated
+  UI identity, and was rechecked at a 390x844 dark viewport.
+- The isolated primitive has no dedicated product route; its loading, empty,
+  error, retry, content, focus-preserving native button, and ARIA fixture
+  evidence is captured by the Angular Karma component suite.
+- All task-owned runtime processes were stopped and process inventory showed no
+  remaining Tox21/Nest/Angular watcher.
+
+### Commits
+`141caa1cbfe8f0470742f19de62bd6babb50e4e6` —
+`feat(ui): add canonical page state primitive`, committed with
+`--no-gpg-sign` and a Copilot co-author trailer.
+`e46f7c4f55040ad1a38b21c53de5df7dcf6eb96e` —
+`docs(ui): record UI-012 validation`, also committed with `--no-gpg-sign`
+and a Copilot co-author trailer.
+
+### Feature CI
+Exact feature SHA `141caa1cbfe8f0470742f19de62bd6babb50e4e6` passed CI run
+`34663788104`: Ubuntu quality, Windows quality, and `Required gate` all
+successful. The final feature SHA
+`e46f7c4f55040ad1a38b21c53de5df7dcf6eb96e` passed exact-SHA CI run
+`34664160735` with `Required gate` successful (metadata path; the preceding
+source SHA supplied the full two-platform quality evidence).
+
+> Current status (2026-09-11): PENDING by direct owner instruction because this
+> activity was not completed. Historical attempt/skip evidence remains below
+> for traceability and is not a terminal outcome.
+
+### Feature branch
+No task branch or worker was created because hard prerequisite
+`0059-create-the-canonical-button-primitive.md` (`UI-001`) is
+`SKIPPED_DEPENDENCY`.
+
+### Preflight
+Not applicable; the task was skipped before implementation.
+
+### Preflight remediation
+_None._
+
+### Summary
+Skipped at the normal filename-order selection point. `UI-001` is terminal
+`SKIPPED_DEPENDENCY`, with direct blocked root cause
+`0052-standardize-modern-angular-component-apis.md` (`FE-030`).
+
+### Task-specific validation performed
+No implementation or validation was performed.
+
+### Full pre-merge CI-parity validation
+Not applicable; no feature branch was created.
+
+### Browser validation performed
+Not applicable; the task was skipped before implementation.
+
+### Commits
+Only this task metadata was updated on `develop`.
+
+### Merge / CI
+No feature merge; skip metadata CI is required before continuing.
+
+### Rollback
+_Not applicable._
+
+### Blocker / human decision required
+No implementation blocker. Re-enable only after FE-030 and UI-001 are
+deliberately resolved in a new authorized session.

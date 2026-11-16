@@ -1,0 +1,170 @@
+import {
+  Component,
+  ChangeDetectionStrategy,
+  CUSTOM_ELEMENTS_SCHEMA,
+  ElementRef,
+  OnDestroy,
+  computed,
+  effect,
+  signal,
+  Signal,
+  inject,
+  PLATFORM_ID,
+  viewChild
+} from '@angular/core'
+import { RouterOutlet } from '@angular/router'
+import { HeaderComponent } from './components/common/header/header.component'
+import { ThemeManagerService } from './services/context/theme-manager.service'
+import { SearchOverlayComponent } from './components/search-overlay/search-overlay/search-overlay.component'
+import { SearchContextService } from './services/context/search-context.service'
+import { FooterComponent } from './components/common/footer/footer.component'
+import { ToastService } from './services/toast.service'
+import { AuthStateStore } from './services/auth-state.store'
+import { SidenavContextService } from './services/context/sidenav-context.service'
+import { DesignService } from './services/design.service'
+import { SidenavComponent } from './components/common/sidenav/sidenav.component'
+import { AppShellFacade } from './services/app-shell.facade'
+import { ActionOverlayContextService } from './services/context/action-context/action-overlay-context.service'
+import { ActionOverlayComponent } from './components/action-components/action-overlay/action-overlay.component'
+import { ScrollContextService } from './services/context/scroll-context.service'
+import { ShellLayoutService } from './services/context/shell-layout.service'
+import { DOCUMENT, isPlatformBrowser } from '@angular/common'
+import { ToastComponent } from './components/common/toast/toast.component'
+import { RealtimeStateSyncService } from './services/realtime-state-sync.service'
+import { DeferredOverlayStateComponent } from './components/common/deferred-overlay-state/deferred-overlay-state.component'
+
+@Component({
+  selector: 'm-root',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [
+    RouterOutlet,
+    HeaderComponent,
+    SearchOverlayComponent,
+    FooterComponent,
+    ToastComponent,
+    SidenavComponent,
+    ActionOverlayComponent,
+    DeferredOverlayStateComponent
+  ],
+  template: `
+    @if (routePolicy().shell === 'standard') {
+      <div class="flex min-h-dvh flex-col">
+        <m-header class="block sticky top-0 z-30"
+          [triggerOpenOffCanvas]="_triggerOpenOffCanvas()"
+          (onOffCanvasMenuOpen)="triggerOpenOffCanvas()" />
+        <div class="drawer-container relative flex flex-1" [style.--m-navigation-width]="navigationWidth()">
+          @if (authState.authenticated() && design.minBk('xl')()) {
+            <aside class="m-desktop-navigation fixed bottom-0 left-0" [style.top.px]="shellLayout.headerHeight()">
+              @defer (on immediate) {
+                <m-sidenav [desktop]="true" [collapsed]="!sidenavContext.isOpen()" />
+              } @placeholder {
+                <nav aria-label="Navigazione laterale" aria-busy="true"><span class="sr-only">Caricamento navigazione…</span></nav>
+              }
+            </aside>
+          }
+          <section class="content m-navigation-content flex min-w-0 flex-col flex-1">
+            <main class="flex-1 p-4 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] min-w-0 block">
+              <router-outlet />
+            </main>
+            <m-footer class="shrink-0" />
+          </section>
+        </div>
+      </div>
+      @if (saveOverlayContext.shouldMount() && authState.authenticated()) {
+        @defer (when saveOverlayContext.shouldMount()) {
+          <m-action-overlay />
+        } @loading {
+          <m-deferred-overlay-state label="Pannello azioni" [open]="saveOverlayContext.isVisible()" (closed)="saveOverlayContext.close()" />
+        } @error {
+          <m-deferred-overlay-state label="Pannello azioni" [open]="saveOverlayContext.isVisible()" [failed]="true"
+            (closed)="saveOverlayContext.close()" (reloadRequested)="reloadPage()" />
+        }
+      }
+    } @else if (routePolicy().shell === 'home') {
+      <div class="min-h-dvh">
+        <router-outlet />
+      </div>
+    } @else {
+      <div class="min-h-dvh">
+        @if (routePolicy().shell === 'welcome') {
+          <m-header class="block sticky top-0 z-30" />
+        }
+        <router-outlet />
+      </div>
+    }
+    @if (searchContextService.isMounted()) {
+      @defer (when searchContextService.isMounted()) {
+        <m-search-overlay />
+      } @loading {
+        <m-deferred-overlay-state label="Ricerca molecolare" [open]="searchContextService.isVisible()" (closed)="searchContextService.close()" />
+      } @error {
+        <m-deferred-overlay-state label="Ricerca molecolare" [open]="searchContextService.isVisible()" [failed]="true"
+          (closed)="searchContextService.close()" (reloadRequested)="reloadPage()" />
+      }
+    }
+    @defer (when toastService.messages().length > 0; prefetch on idle) {
+      <m-toast />
+    }
+  `
+})
+export class AppComponent implements OnDestroy {
+
+  protected readonly isSafari: boolean
+
+  private readonly themeManagerService = inject(ThemeManagerService)
+  protected readonly searchContextService = inject(SearchContextService)
+  private readonly shell = inject(AppShellFacade)
+  protected readonly toastService = inject(ToastService)
+  protected readonly authState = inject(AuthStateStore)
+  protected readonly sidenavContext = inject(SidenavContextService)
+  protected readonly design = inject(DesignService)
+  protected readonly saveOverlayContext = inject(ActionOverlayContextService)
+  private readonly scrollContext = inject(ScrollContextService)
+  protected readonly shellLayout = inject(ShellLayoutService)
+  private readonly doc = inject(DOCUMENT)
+  private readonly platformId = inject(PLATFORM_ID)
+  private readonly isBrowser = isPlatformBrowser(this.platformId)
+  private readonly realtimeStateSync = inject(RealtimeStateSyncService)
+
+  isDarkTheme: Signal<boolean> = computed(() => this.themeManagerService.theme() === 'dark')
+  readonly routePolicy = this.shell.routePolicy
+  readonly navigationWidth = computed(() => this.authState.authenticated() && this.design.minBk('xl')()
+    ? (this.sidenavContext.isOpen() ? '256px' : '64px') : '0px')
+
+  _triggerOpenOffCanvas = signal<boolean>(false)
+
+  readonly headerRef = viewChild(HeaderComponent, { read: ElementRef })
+
+  constructor() {
+    const isBrowser = this.isBrowser
+    this.isSafari = isBrowser && /safari\//i.test(navigator.userAgent) && !/chrome\//i.test(navigator.userAgent)
+    if (isBrowser) {
+      this.doc.documentElement.classList.add('m-scroll-thin')
+      this.scrollContext.registerScrollRootRef(
+        new ElementRef(this.doc.scrollingElement as HTMLElement ?? this.doc.documentElement)
+      )
+      this.realtimeStateSync.start()
+    }
+    effect(() => {
+      const header = this.headerRef()
+      queueMicrotask(() => this.shellLayout.setHeaderHeight(header?.nativeElement?.getBoundingClientRect().height ?? 0))
+    })
+  }
+
+  triggerOpenOffCanvas(): void {
+    this._triggerOpenOffCanvas.set(true)
+  }
+
+  protected reloadPage(): void {
+    this.doc.defaultView?.location.reload()
+  }
+
+  ngOnDestroy() {
+    if (this.isBrowser) {
+      this.doc.documentElement.classList.remove('m-scroll-thin')
+      this.realtimeStateSync.stop()
+    }
+  }
+
+}

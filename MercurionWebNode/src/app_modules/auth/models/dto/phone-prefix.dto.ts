@@ -1,0 +1,1 @@
+export type { PhonePrefixDTO } from '@mercurion/rest-contracts'

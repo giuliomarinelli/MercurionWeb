@@ -1,0 +1,41 @@
+:host { display: block; min-width: 0; }
+.m-editor-page { container-type: inline-size; margin-block: 1rem 1.5rem; text-align: left; }
+.m-editor-header { margin-bottom: 1rem; }
+.m-editor-eyebrow { color: var(--m-color-on-surface-secondary); font-size: .8125rem; font-weight: 600; margin-bottom: .375rem; }
+.m-editor-description { color: var(--m-color-on-surface-secondary); font-size: .875rem; line-height: 1.6; margin-top: .5rem; }
+.m-editor-view-selector { margin-bottom: 1rem; }
+.editor-tabs { display: inline-flex; max-width: 100%; border: 1px solid var(--m-color-border); border-radius: .5rem; --p-togglebutton-background: var(--m-color-surface-elevated); --p-togglebutton-color: var(--m-color-on-surface-main); --p-togglebutton-hover-background: var(--m-color-control-ghost-hover); --p-togglebutton-hover-color: var(--m-color-on-surface-main); --p-togglebutton-checked-background: var(--m-color-control-primary); --p-togglebutton-checked-color: var(--m-color-on-control-filled); --p-togglebutton-content-checked-background: var(--m-color-control-primary); --p-togglebutton-border-color: transparent; --p-togglebutton-checked-border-color: transparent; --p-togglebutton-padding: 0; --p-togglebutton-content-padding: .75rem 1rem; --p-togglebutton-font-weight: 600; --p-selectbutton-border-radius: .5rem; }
+.m-editor-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.m-editor-workspace { min-width: 0; border: 1px solid var(--m-color-border); border-radius: 1rem; padding: .75rem; background: var(--m-color-surface-elevated); }
+.m-editor-identity { display: grid; gap: .75rem; margin-bottom: 1rem; }
+.m-editor-identity > div { display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.m-editor-identity dt { color: var(--m-color-on-surface-secondary); font-size: .8125rem; margin-bottom: .25rem; }
+.m-editor-identity dd { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin: 0; font-size: .875rem; min-height: 2.5rem; overflow-wrap: anywhere; }
+.m-editor-smiles dd { flex-wrap: nowrap; }
+.m-editor-smiles-value { display: flex; align-items: center; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.m-editor-identity m-copy-button, .m-editor-identity m-molecule-badge, .m-editor-identity m-progress-indicator { display: inline-flex; align-items: center; flex-shrink: 0; }
+.m-editor-status { display: grid; grid-template-columns: 1rem minmax(0, 1fr) 6rem; align-items: center; gap: .5rem; height: 3.5rem; margin-top: .75rem; padding-block: .125rem; border-top: 1px solid var(--m-color-border); color: var(--m-color-on-surface-secondary); font-size: .8125rem; line-height: 1.25rem; }
+.m-editor-status-icon { display: flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; }
+.m-editor-status-text { min-width: 0; margin: 0; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.m-editor-status--error { color: var(--m-color-status-error); }
+.m-editor-status--duplicate { color: var(--m-color-status-warning); }
+.m-editor-status--ready .m-editor-status-icon { color: var(--m-color-status-success); }
+.m-editor-status-retry { min-height: 48px; padding-inline: .5rem; border: 1px solid var(--m-color-border); border-radius: .5rem; color: var(--m-color-control-outline-text); font-weight: 600; }
+.m-editor-status-retry:hover:not(:disabled) { background: var(--m-color-control-outline-hover); }
+.m-editor-status-retry:focus-visible { outline: 2px solid var(--m-color-focus); outline-offset: 3px; }
+.m-editor-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .75rem; margin-top: 1rem; }
+.m-editor-action { min-height: 48px; flex: 1 1 10rem; padding: .625rem 1rem; border: 1px solid var(--m-color-border); border-radius: .5rem; font-size: .875rem; font-weight: 600; }
+.m-editor-action--secondary { color: var(--m-color-control-outline-text); }
+.m-editor-action--secondary:hover:not(:disabled) { background: var(--m-color-control-outline-hover); }
+.m-editor-action--primary { background: var(--m-color-control-primary); color: var(--m-color-on-control-filled); border-color: transparent; }
+.m-editor-action--primary:hover:not(:disabled) { background: var(--m-color-control-primary-hover); }
+.m-editor-action:disabled { opacity: .55; cursor: not-allowed; }
+.m-editor-action:focus-visible { outline: 2px solid var(--m-color-focus); outline-offset: 3px; }
+.m-editor-analysis { min-width: 0; }
+.m-editor-analysis > .m-editor-description { margin-top: .25rem; margin-bottom: .5rem; font-size: .75rem; }
+@media (min-width: 640px) {
+  .m-editor-workspace { padding: 1rem; }
+  .m-editor-identity { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 1.5rem; }
+  .m-editor-action { flex: 0 1 auto; min-width: 11rem; }
+}
+@container (min-width: 58rem) { .m-editor-layout--live { grid-template-columns: minmax(0, 1fr) 20rem; } }

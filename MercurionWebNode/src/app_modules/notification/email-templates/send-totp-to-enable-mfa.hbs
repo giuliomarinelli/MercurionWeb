@@ -1,0 +1,6 @@
+{{#> layouts/email-shell title="Mercurion: autenticazione a più fattori" footer="Se non hai richiesto tu l'attivazione dell'MFA, puoi ignorare questa email."}}
+<h1>Ciao {{firstName}}!</h1>
+<p>Questo è il tuo codice per attivare l'autenticazione a più fattori via email in Mercurion.</p>
+<p class="otp-code">{{totp}}</p>
+<p class="code-help">Il codice cambia ogni {{period}} secondi: usalo subito. Inseriscilo nella schermata di attivazione MFA per completare la procedura.</p>
+{{/layouts/email-shell}}

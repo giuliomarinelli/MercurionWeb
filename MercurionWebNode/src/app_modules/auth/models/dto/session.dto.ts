@@ -1,0 +1,1 @@
+export type { SessionDTO } from '@mercurion/rest-contracts'

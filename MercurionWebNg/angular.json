@@ -1,0 +1,226 @@
+{
+  "$schema": "../node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "MercurionWebNg": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "css"
+        }
+      },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "m",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": "dist/mercurion-web-ng",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "polyfills": ["zone.js"],
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "css",
+            "externalDependencies": ["fs", "path"],
+            "baseHref": "/",
+            "deployUrl": "/",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              },
+              {
+                "glob": "RDKit_minimal.wasm",
+                "input": "../node_modules/@rdkit/rdkit/dist/",
+                "output": "/"
+              },
+              {
+                "glob": "*.svg",
+                "input": "../node_modules/svg-country-flags/svg",
+                "output": "flags"
+              },
+              {
+                "glob": "quill.core.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.bubble.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.snow.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              }
+            ],
+            "styles": ["src/styles.css"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "allowedCommonJsDependencies": [
+                "@mercurion/rest-contracts",
+                "@rdkit/rdkit",
+                "quill-delta"
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ]
+            },
+            "catalog": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "outputPath": "dist/mercurion-ui-catalog",
+              "index": "src/catalog/index.html",
+              "browser": "src/catalog/main.ts"
+            },
+            "testing": {
+              "optimization": true,
+              "extractLicenses": true,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.testing.ts"
+                }
+              ]
+            },
+            "staging": {
+              "optimization": true,
+              "extractLicenses": true,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.staging.ts"
+                }
+              ]
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 3498,
+            "host": "0.0.0.0",
+            "prebundle": false
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "MercurionWebNg:build:production"
+            },
+            "development": {
+              "buildTarget": "MercurionWebNg:build:development"
+            },
+            "catalog": {
+              "buildTarget": "MercurionWebNg:build:catalog"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular/build:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "main": "src/test-setup.ts",
+            "polyfills": ["zone.js", "zone.js/testing"],
+            "tsConfig": "tsconfig.spec.json",
+            "inlineStyleLanguage": "css",
+            "externalDependencies": ["fs", "path"],
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              },
+              {
+                "glob": "RDKit_minimal.wasm",
+                "input": "../node_modules/@rdkit/rdkit/dist/",
+                "output": "/"
+              },
+              {
+                "glob": "*.svg",
+                "input": "../node_modules/svg-country-flags/svg",
+                "output": "flags"
+              },
+              {
+                "glob": "quill.core.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.bubble.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              },
+              {
+                "glob": "quill.snow.css",
+                "input": "../node_modules/quill/dist",
+                "output": "quill"
+              }
+            ],
+            "styles": ["src/styles.css"],
+            "scripts": []
+          }
+        }
+      }
+    }
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "type": "directive"
+    },
+    "@schematics/angular:service": {
+      "type": "service"
+    },
+    "@schematics/angular:guard": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:interceptor": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:module": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:pipe": {
+      "typeSeparator": "."
+    },
+    "@schematics/angular:resolver": {
+      "typeSeparator": "."
+    }
+  },
+  "cli": {
+    "analytics": false
+  }
+}

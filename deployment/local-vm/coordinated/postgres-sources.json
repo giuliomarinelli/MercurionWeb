@@ -1,0 +1,26 @@
+{
+  "postgresql-16.16.tar.bz2": {
+    "url": "https://ftp.postgresql.org/pub/source/v16.16/postgresql-16.16.tar.bz2",
+    "sha256": "9d5cd8633043b75740d5d59749c6b7365e6aeb53c47098b1a5e80bb18f87881a"
+  },
+  "pgvector.tar.gz": {
+    "url": "https://codeload.github.com/pgvector/pgvector/tar.gz/f37c13f68b57d2c3472b2214fbcff699d6d34876",
+    "sha256": "83d673c3b287cddbf3879f86215f043f2c2b56c69d37b2a77504910db1ed6e56"
+  },
+  "vector--0.8.1.sql": {
+    "url": "https://raw.githubusercontent.com/pgvector/pgvector/v0.8.1/sql/vector.sql",
+    "sha256": "7fb5bb279ef83bf9204bfac7405bb5c9a05e49f5ac7d64d1eb4464d103b80f32"
+  },
+  "docker-entrypoint.sh": {
+    "url": "https://raw.githubusercontent.com/docker-library/postgres/9d15534160ade17f2b6c455a39ee967c49b1937d/16/alpine3.24/docker-entrypoint.sh",
+    "sha256": "9c440299ae04a0a79d55b8bf03307036d890a40979d2fb698073c9050d4b20a5"
+  },
+  "docker-ensure-initdb.sh": {
+    "url": "https://raw.githubusercontent.com/docker-library/postgres/9d15534160ade17f2b6c455a39ee967c49b1937d/16/alpine3.24/docker-ensure-initdb.sh",
+    "sha256": "922ade6b23a312e65023349b36e873752b15ff38ae4c0ae461d74451e104f312"
+  },
+  "LICENSE.postgres-image": {
+    "url": "https://raw.githubusercontent.com/docker-library/postgres/9d15534160ade17f2b6c455a39ee967c49b1937d/LICENSE",
+    "sha256": "87ffd2c45e3f90cfa3407b5c40ef8333e87c3e875e4895f8b64df758198deafc"
+  }
+}

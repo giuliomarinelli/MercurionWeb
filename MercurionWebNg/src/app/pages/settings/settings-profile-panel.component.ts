@@ -1,0 +1,54 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ActionOverlayContextService } from '../../services/context/action-context/action-overlay-context.service'
+import { GenderPipe } from '../../pipes/gender.pipe'
+import { SettingsAccountFacade } from './settings-account.facade'
+
+@Component({
+  selector: 'm-settings-profile-panel',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './settings-panel.styles.css',
+  imports: [GenderPipe],
+  template: `
+    @if (account.profile(); as profile) {
+      <div class="settings-panel-content">
+        <div class="settings-data-row">
+          <div class="settings-data-label">Nome</div>
+          <div class="settings-data-value">
+            <strong class="settings-value">{{ profile.firstName }}</strong>
+          </div>
+        </div>
+        <div class="settings-data-row">
+          <div class="settings-data-label">Cognome</div>
+          <div class="settings-data-value">
+            <strong class="settings-value">{{ profile.lastName }}</strong>
+          </div>
+        </div>
+        <div class="settings-data-row">
+          <div class="settings-data-label">Genere</div>
+          <div class="settings-data-value">
+            <strong class="settings-value">{{ profile.gender | gender }}</strong>
+          </div>
+        </div>
+        <div class="settings-data-row">
+          <div class="settings-data-label">Lavoro</div>
+          <div class="settings-data-value">
+            <strong class="settings-value">{{ profile.job ?? '―' }}</strong>
+          </div>
+        </div>
+        <button type="button" class="settings-action settings-profile-edit" (click)="edit()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="fill-current size-6" aria-hidden="true" focusable="false"><!--!Font Awesome Pro v7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2026 Fonticons, Inc.--><path d="M192 448C194.3 435.6 202.3 392.9 216 320L465.4 70.6L488 48C497.1 57.1 524.2 84.2 569.4 129.4L592 152L569.4 174.6L320 424C247.1 437.7 204.4 445.7 192 448zM304.4 394.4L474.1 224.7L415.4 166L245.7 335.7L232.1 408L304.4 394.4zM496.7 202.1L546.8 152L488.1 93.3L438 143.4L496.7 202.1zM64 128L288 128L288 160L96 160L96 544L480 544L480 352L512 352L512 576L64 576L64 128z"/></svg>
+          <span>Modifica anagrafica</span>
+        </button>
+      </div>
+    }
+  `,
+})
+export class SettingsProfilePanelComponent {
+  readonly account = inject(SettingsAccountFacade)
+  private readonly actions = inject(ActionOverlayContextService)
+
+  edit(): void {
+    queueMicrotask(() => this.actions.open('EssentialProfileRegistryEdit'))
+  }
+}

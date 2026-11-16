@@ -1,0 +1,6 @@
+{{#> layouts/email-shell title="Mercurion: autenticazione a più fattori" footer="Se non hai richiesto tu la disattivazione dell'MFA, ti consigliamo di cambiare password e di contattare il supporto se noti attività sospette."}}
+<h1>Ciao {{firstName}}!</h1>
+<p>Hai richiesto di disattivare l'autenticazione a più fattori via email sul tuo account Mercurion. Conferma l'operazione con questo codice:</p>
+<p class="otp-code">{{totp}}</p>
+<p class="code-help">Il codice cambia ogni {{period}} secondi: usalo subito. Non condividerlo con nessuno.</p>
+{{/layouts/email-shell}}

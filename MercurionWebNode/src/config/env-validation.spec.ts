@@ -1,0 +1,170 @@
+import {
+  Environment,
+  legacyJwtSecretSources,
+  environmentSchema,
+  type EnvironmentProperty,
+  type RawEnvironment
+} from './config.schema'
+import {
+  ConfigurationError,
+  validateEnvironment,
+} from './env-validation'
+
+function rawExample(property: EnvironmentProperty): string {
+  if (property.parser.kind === 'json-string-list') {
+    return JSON.stringify(property.parser.example)
+  }
+  return String(property.parser.example)
+}
+
+function validRawEnvironment(includeOptional: boolean): RawEnvironment {
+  return Object.fromEntries(
+    environmentSchema.entries
+      .filter(property => includeOptional || property.required || (legacyJwtSecretSources as readonly string[]).includes(property.source))
+      .map(property => [property.source, rawExample(property)])
+  )
+}
+
+describe('canonical environment validation', () => {
+  it.each(Object.values(Environment))('preserves optional NATS auth as a complete literal pair (%s)', appEnv => {
+    const raw = validRawEnvironment(true)
+    raw.APP_ENV = appEnv
+    delete raw.APP_NATS_USERNAME
+    delete raw.APP_NATS_PASSWORD
+    expect(validateEnvironment(raw)).toMatchObject({ APP_NATS_USERNAME: undefined, APP_NATS_PASSWORD: undefined })
+    raw.APP_NATS_USERNAME = 'synthetic-nest-user'
+    raw.APP_NATS_PASSWORD = 'synthetic-@$:{} password'
+    expect(validateEnvironment(raw)).toMatchObject({
+      APP_NATS_USERNAME: 'synthetic-nest-user', APP_NATS_PASSWORD: 'synthetic-@$:{} password'
+    })
+  })
+
+  it.each([
+    ['APP_NATS_USERNAME', undefined, 'APP_NATS_PASSWORD'],
+    ['APP_NATS_PASSWORD', undefined, 'APP_NATS_USERNAME'],
+    ['APP_NATS_USERNAME', '', 'APP_NATS_USERNAME'],
+    ['APP_NATS_PASSWORD', '', 'APP_NATS_PASSWORD'],
+    ['APP_NATS_USERNAME', false, 'APP_NATS_USERNAME'],
+    ['APP_NATS_PASSWORD', 12, 'APP_NATS_PASSWORD']
+  ] as const)('rejects incomplete or invalid NATS credentials: %s=%s', (source, value, diagnostic) => {
+    const raw = validRawEnvironment(true)
+    raw.APP_NATS_USERNAME = 'synthetic-sensitive-user'
+    raw.APP_NATS_PASSWORD = 'synthetic-sensitive-password'
+    raw[source] = value
+    try {
+      validateEnvironment(raw)
+      throw new Error('expected validation failure')
+    } catch (error) {
+      expect(error).toBeInstanceOf(ConfigurationError)
+      expect((error as Error).message).toContain(diagnostic)
+      expect((error as Error).message).not.toMatch(/synthetic-sensitive/)
+    }
+  })
+
+  it('allows omission of the dedicated Meilisearch writer key but rejects an explicitly empty key', () => {
+    const raw = validRawEnvironment(false)
+    expect(validateEnvironment(raw).MEILISEARCH_LOG_KEY).toBeUndefined()
+    raw.MEILISEARCH_LOG_KEY = ''
+    expect(() => validateEnvironment(raw)).toThrow('MEILISEARCH_LOG_KEY: must be a non-empty string')
+  })
+
+  it('coerces a full valid environment exactly once', () => {
+    const environment = validateEnvironment(validRawEnvironment(true))
+
+    expect(environment.APP_PORT).toBe(1)
+    expect(environment.APP_TRUSTED_PROXY_CIDRS).toEqual(['127.0.0.1/32', '::1/128'])
+    expect(environment.APP_ENV).toBe(Environment.Development)
+  })
+
+  it('accepts the minimal required environment and applies declared safe defaults', () => {
+    const environment = validateEnvironment(validRawEnvironment(false))
+
+    expect(environment).toEqual(expect.objectContaining({
+      APP_ENV: Environment.Development,
+      NODE_ENV: 'development',
+      LOCAL_DUMMY_AUTH: false,
+      DISABLE_TURNSTILE: false,
+      LOCAL_TEST_ACCOUNT_EMAIL: undefined,
+    }))
+  })
+
+  it('reports every missing required property without terminating the process', () => {
+    const exit = jest.spyOn(process, 'exit').mockImplementation(code => {
+      throw new Error(`unexpected process.exit(${String(code)})`)
+    })
+
+    expect(() => validateEnvironment({})).toThrow(ConfigurationError)
+    expect(() => validateEnvironment({})).toThrow(/APP_PORT: is required/)
+    expect(exit).not.toHaveBeenCalled()
+
+    exit.mockRestore()
+  })
+
+  it('exposes structured diagnostics without including rejected values', () => {
+    const raw = validRawEnvironment(true)
+    raw.APP_PORT = 'not-a-secret-safe-value'
+
+    try {
+      validateEnvironment(raw)
+      throw new Error('Expected validation to fail')
+    } catch (error) {
+      expect(error).toBeInstanceOf(ConfigurationError)
+      expect((error as ConfigurationError).diagnostics).toContainEqual({
+        source: 'APP_PORT',
+        message: 'must be an integer greater than or equal to 1'
+      })
+      expect((error as Error).message).not.toContain('not-a-secret-safe-value')
+    }
+  })
+
+  it.each([
+    ['integer', 'APP_PORT', '1.5'],
+    ['positive integer', 'REDIS_PORT', '0'],
+    ['boolean', 'SECURE_COOKIE_SECURE', 'yes'],
+    ['proxy CIDR list', 'APP_TRUSTED_PROXY_CIDRS', '["not-an-ip"]'],
+    ['database enum', 'SQL_DATABASE_TYPE', 'mariadb'],
+    ['cookie enum', 'SECURE_COOKIE_SAME_SITE', 'sometimes'],
+    ['UUID', 'APP_PROJECT_ID', 'not-a-uuid']
+  ])('rejects an invalid %s', (_case, source, invalidValue) => {
+    const raw = validRawEnvironment(true)
+    raw[source] = invalidValue
+
+    expect(() => validateEnvironment(raw)).toThrow(source)
+  })
+
+  it('requires the user ID AES secret to be Base64 encoding at least 32 bytes', () => {
+    const validRaw = validRawEnvironment(true)
+    validRaw.APP_USER_ID_AES_ENCRYPTION_SECRET = Buffer.alloc(32, 7).toString('base64')
+    expect(validateEnvironment(validRaw).APP_USER_ID_AES_ENCRYPTION_SECRET)
+      .toBe(validRaw.APP_USER_ID_AES_ENCRYPTION_SECRET)
+
+    for (const invalidSecret of [
+      Buffer.alloc(31, 7).toString('base64'),
+      'not-base64-with-punctuation!',
+      'abcd===='
+    ]) {
+      const raw = validRawEnvironment(true)
+      raw.APP_USER_ID_AES_ENCRYPTION_SECRET = invalidSecret
+      expect(() => validateEnvironment(raw)).toThrow(
+        'APP_USER_ID_AES_ENCRYPTION_SECRET: must be a Base64-encoded secret of at least 32 bytes'
+      )
+    }
+  })
+
+  it.each([
+    ['missing host', 'APP_NATS_HOST', undefined],
+    ['missing port', 'APP_NATS_PORT', undefined],
+    ['missing protocol', 'APP_NATS_HOST', 'localhost'],
+    ['unsupported protocol', 'APP_NATS_HOST', 'http://localhost'],
+    ['embedded port', 'APP_NATS_HOST', 'nats://localhost:4223'],
+    ['credentials', 'APP_NATS_HOST', 'nats://user:password@localhost'],
+    ['path', 'APP_NATS_HOST', 'nats://localhost/messages'],
+    ['surrounding whitespace', 'APP_NATS_HOST', ' nats://localhost'],
+    ['out-of-range port', 'APP_NATS_PORT', '65536']
+  ])('fails closed for invalid NATS endpoint data: %s', (_case, source, value) => {
+    const raw = validRawEnvironment(true)
+    raw[source] = value
+
+    expect(() => validateEnvironment(raw)).toThrow(source)
+  })
+})

@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "description": "Mercurion production architecture policy",
+  "angular": {
+    "staticLayerRules": [
+      {
+        "from": "utils",
+        "forbidden": ["pages", "components", "services", "graphql", "chemistry"],
+        "rationale": "utility code remains reusable and presentation/domain agnostic"
+      },
+      {
+        "from": "config",
+        "forbidden": ["pages", "components", "services"],
+        "rationale": "configuration is consumed by application layers, never by them"
+      },
+      {
+        "from": "components",
+        "forbidden": ["pages"],
+        "rationale": "reusable controls must not depend on page orchestration"
+      },
+      {
+        "from": "services",
+        "forbidden": ["pages"],
+        "rationale": "services do not depend on feature-page implementation details"
+      }
+    ]
+  },
+  "nest": {
+    "staticLayerRules": [
+      {
+        "from": "utils",
+        "forbidden": ["app_modules"],
+        "rationale": "shared utilities must not depend on domain modules"
+      },
+      {
+        "from": "config",
+        "forbidden": ["app_modules"],
+        "rationale": "configuration is a lower-level boundary"
+      },
+      {
+        "from": "metadata",
+        "forbidden": ["app_modules"],
+        "rationale": "metadata helpers remain independent of domain modules"
+      }
+    ]
+  },
+  "allowlist": [
+    {
+      "product": "Nest",
+      "file": "MercurionWebNode/src/config/config.model.ts",
+      "specifier": "../app_modules/notification/email-templates/deterministic-handlebars.adapter",
+      "owner": "notification configuration adapter",
+      "reason": "the typed template adapter is the canonical owner of notification template rendering"
+    }
+  ]
+}

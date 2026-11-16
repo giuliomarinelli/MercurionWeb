@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mercurion-web-ng
+  namespace: mercurion-preview
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mercurion-web-ng
+  template:
+    metadata:
+      labels:
+        app: mercurion-web-ng
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10101
+        runAsGroup: 10101
+        fsGroup: 10101
+      containers:
+        - name: web-ng
+          image: ${REGISTRY_IMAGE_NG}:${BUILD_VERSION}-${BUILD_REVISION}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3497
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: APP_ENV
+              value: "staging"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "512Mi"
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mercurion-web-ng
+  namespace: mercurion-preview
+spec:
+  selector:
+    app: mercurion-web-ng
+  ports:
+    - name: http
+      port: 3497        
+      targetPort: 3497  
+      protocol: TCP
+  type: ClusterIP

@@ -1,0 +1,269 @@
+# NOTEBOOK V1 — Quaderno > Sezione > Esperimento > Esecuzione.
+# GraphQL operation names are unique across the Angular document catalog.
+
+fragment NotebookExecutionSummary on ExperimentExecution {
+  id
+  title
+  status
+  executionOrder
+  archivedAt
+  protocolRevisionId
+}
+
+fragment NotebookExperimentSummary on NotebookExperiment {
+  id
+  title
+  experimentOrder
+  archivedAt
+  executions {
+    ...NotebookExecutionSummary
+  }
+}
+
+fragment NotebookSectionSummary on NotebookSection {
+  id
+  title
+  sectionOrder
+  experiments {
+    ...NotebookExperimentSummary
+  }
+}
+
+fragment NotebookSummary on LabNotebook {
+  id
+  title
+  archivedAt
+  sections {
+    ...NotebookSectionSummary
+  }
+}
+
+fragment NotebookExecutionDetail on ExperimentExecution {
+  ...NotebookExecutionSummary
+  experimentId
+  contentDelta
+  sanitizedText
+  startedAt
+  completedAt
+  createdAt
+  updatedAt
+  protocolRevision {
+    id
+    revisionNumber
+    snapshotSchemaVersion
+    createdAt
+  }
+}
+
+fragment NotebookExperimentDetail on NotebookExperiment {
+  ...NotebookExperimentSummary
+  sectionId
+  contentDelta
+  sanitizedText
+  protocolRevisions {
+    id
+    revisionNumber
+    snapshotSchemaVersion
+    createdAt
+  }
+}
+
+fragment NotebookSectionDetail on NotebookSection {
+  ...NotebookSectionSummary
+  notebookId
+  contentDelta
+  sanitizedText
+}
+
+query GetAllNotebooks {
+  labNotebooksByUser {
+    ...NotebookSummary
+  }
+}
+
+query GetNotebookDetail($id: ID!) {
+  labNotebook(id: $id) {
+    ...NotebookSummary
+    premiseDelta
+    premiseText
+  }
+}
+
+query GetNotebookSection($id: ID!) {
+  notebookSection(id: $id) {
+    ...NotebookSectionDetail
+  }
+}
+
+query GetNotebookExperiment($id: ID!) {
+  notebookExperiment(id: $id) {
+    ...NotebookExperimentDetail
+  }
+}
+
+query GetExperimentExecution($id: ID!) {
+  experimentExecution(id: $id) {
+    ...NotebookExecutionDetail
+  }
+}
+
+query GetExperimentProtocolRevision($id: ID!) {
+  experimentProtocolRevision(id: $id) {
+    id
+    experimentId
+    revisionNumber
+    snapshotSchemaVersion
+    snapshot
+    checksumSha256
+    createdAt
+  }
+}
+
+mutation CreateLabNotebook($input: ScientificNotebookCreateInput!) {
+  createLabNotebook(input: $input) {
+    id
+    title
+    archivedAt
+    sections { id }
+  }
+}
+
+mutation UpdateLabNotebook($input: ScientificNotebookPatchInput!) {
+  updateLabNotebook(input: $input) {
+    id
+    title
+    premiseDelta
+    premiseText
+    archivedAt
+  }
+}
+
+mutation ArchiveLabNotebook($id: ID!) {
+  archiveLabNotebook(id: $id) {
+    id
+    title
+    archivedAt
+  }
+}
+
+mutation CreateNotebookSection($input: NotebookSectionCreateInput!) {
+  createNotebookSection(input: $input) {
+    id
+    title
+    notebookId
+    sectionOrder
+  }
+}
+
+mutation UpdateNotebookSection($input: NotebookSectionPatchInput!) {
+  updateNotebookSection(input: $input) {
+    id
+    title
+    notebookId
+    contentDelta
+    sanitizedText
+  }
+}
+
+mutation CreateNotebookExperiment($input: NotebookExperimentCreateInput!) {
+  createNotebookExperiment(input: $input) {
+    id
+    title
+    sectionId
+    experimentOrder
+  }
+}
+
+mutation UpdateNotebookExperiment($input: NotebookExperimentPatchInput!) {
+  updateNotebookExperiment(input: $input) {
+    id
+    title
+    sectionId
+    contentDelta
+    sanitizedText
+  }
+}
+
+mutation ArchiveNotebookExperiment($id: ID!) {
+  archiveNotebookExperiment(id: $id) {
+    id
+    title
+    archivedAt
+  }
+}
+
+mutation CreateExperimentExecution($input: ExperimentExecutionCreateInput!) {
+  createExperimentExecution(input: $input) {
+    id
+    title
+    experimentId
+    executionOrder
+    status
+  }
+}
+
+mutation UpdateExperimentExecution($input: ExperimentExecutionPatchInput!) {
+  updateExperimentExecution(input: $input) {
+    id
+    title
+    experimentId
+    contentDelta
+    sanitizedText
+    status
+  }
+}
+
+mutation StartExperimentExecution($id: ID!) {
+  startExperimentExecution(id: $id) {
+    ...NotebookExecutionDetail
+  }
+}
+
+mutation CompleteExperimentExecution($id: ID!) {
+  completeExperimentExecution(id: $id) {
+    ...NotebookExecutionDetail
+  }
+}
+
+mutation CancelExperimentExecution($id: ID!) {
+  cancelExperimentExecution(id: $id) {
+    ...NotebookExecutionDetail
+  }
+}
+
+mutation ArchiveExperimentExecution($id: ID!) {
+  archiveExperimentExecution(id: $id) {
+    id
+    title
+    status
+    archivedAt
+  }
+}
+
+mutation ReorderNotebookSections($input: NotebookOrderInput!) {
+  reorderNotebookSections(input: $input)
+}
+
+mutation ReorderNotebookExperiments($input: NotebookOrderInput!) {
+  reorderNotebookExperiments(input: $input)
+}
+
+mutation ReorderExperimentExecutions($input: NotebookOrderInput!) {
+  reorderExperimentExecutions(input: $input)
+}
+
+mutation LinkSynthesisToExperiment($input: ExperimentSynthesisLinkInput!) {
+  linkSynthesisToExperiment(input: $input)
+}
+
+mutation UnlinkSynthesisFromExperiment($input: ExperimentSynthesisLinkInput!) {
+  unlinkSynthesisFromExperiment(input: $input)
+}
+
+mutation LinkSynthesisToExecution($input: ExecutionSynthesisLinkInput!) {
+  linkSynthesisToExecution(input: $input)
+}
+
+mutation LinkMoleculeToExecution($input: ExecutionMoleculeLinkInput!) {
+  linkMoleculeToExecution(input: $input)
+}
