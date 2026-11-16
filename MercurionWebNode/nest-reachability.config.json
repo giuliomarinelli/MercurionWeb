@@ -5,7 +5,8 @@
     "src/app.module.ts",
     "src/jwt-keys.cli.ts",
     "src/jwt-local.cli.ts",
-    "src/bootstrap-secrets.cli.ts"
+    "src/bootstrap-secrets.cli.ts",
+    "src/admin-scopes.cli.ts"
   ],
   "dynamicEntrypoints": [
     {
