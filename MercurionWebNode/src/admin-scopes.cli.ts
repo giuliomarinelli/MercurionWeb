@@ -32,10 +32,18 @@ export function exportAdminScopes(configurationPath: string, outputPath: string)
   const configuration = realpathSync(configurationPath)
   const output = resolve(realpathSync(dirname(outputPath)), outputPath.split(/[\\/]/).pop()!)
   let repository = resolve(__dirname)
-  while (!existsSync(join(repository, '.git')) && dirname(repository) !== repository) {
+  // Source archives and container test contexts intentionally exclude .git.
+  const isWorkspace = (directory: string) => {
+    const manifest = join(directory, 'package.json')
+    if (!existsSync(manifest)) return false
+    const value: unknown = JSON.parse(readFileSync(manifest, 'utf8'))
+    return typeof value === 'object' && value !== null &&
+      'name' in value && value.name === 'mercurion-web-workspace'
+  }
+  while (!isWorkspace(repository) && dirname(repository) !== repository) {
     repository = dirname(repository)
   }
-  if (!existsSync(join(repository, '.git'))) throw new Error('Local repository checkout required')
+  if (!isWorkspace(repository)) throw new Error('Local workspace required')
   const insideRepository = (path: string) => {
     const part = relative(repository, path)
     return part === '' || (!part.startsWith('..' + sep) && part !== '..' && !isAbsolute(part))

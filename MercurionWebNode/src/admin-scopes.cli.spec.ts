@@ -1,4 +1,5 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import * as fs from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { adminScopeService, exportAdminScopes } from './admin-scopes.cli'
@@ -16,7 +17,10 @@ describe('offline administrator scope export', () => {
     expect(() => adminScopeService(Buffer.alloc(32, 8).toString('base64')).decryptScopes(...first)).toThrow()
     expect(() => adminScopeService('bad-key')).toThrow()
   })
-  it('exports only ciphertext, rejects overwrite and never changes private configuration', () => {
+  it('exports without Git metadata, rejects overwrite and never changes private configuration', () => {
+    const exists = fs.existsSync
+    const gitMetadata = jest.spyOn(fs, 'existsSync').mockImplementation(path =>
+      String(path).endsWith('.git') ? false : exists(path))
     const folder = mkdtempSync(join(tmpdir(), 'mercurion-admin-scopes-'))
     try {
       const config = join(folder, 'configuration.json')
@@ -32,6 +36,7 @@ describe('offline administrator scope export', () => {
       expect(() => exportAdminScopes(config, output)).toThrow()
       expect(() => exportAdminScopes(config, join(folder, '..', 'scope-export-outside.json'))).toThrow()
     } finally {
+      gitMetadata.mockRestore()
       rmSync(folder, { recursive: true, force: true })
     }
   })
