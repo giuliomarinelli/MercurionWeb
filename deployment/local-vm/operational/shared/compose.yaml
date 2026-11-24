@@ -38,7 +38,18 @@ services:
       - {type: bind, source: '${RELEASE_ROOT:?}/deployment/local-vm/operational/nginx.conf', target: /etc/nginx/nginx.conf, read_only: true, bind: {create_host_path: false}}
 
 networks:
-  edge: {name: mercurion_edge, driver: bridge, enable_ipv4: true, enable_ipv6: false, internal: true}
+  edge:
+    name: mercurion_edge
+    driver: bridge
+    enable_ipv4: true
+    enable_ipv6: false
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+          gateway: 172.21.0.1
+          # Keep cloudflared's 172.21.0.3 outside Docker's dynamic pool.
+          ip_range: 172.21.1.0/24
   stg-web: {name: mercurion_stg_web, driver: bridge, enable_ipv4: true, enable_ipv6: false, internal: true}
   stg-search: {name: mercurion_stg_search, driver: bridge, enable_ipv4: true, enable_ipv6: false, internal: true}
 volumes:

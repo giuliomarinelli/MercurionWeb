@@ -1,0 +1,6 @@
+name: mercurion-shared
+services:
+  cloudflared:
+    networks:
+      tunnel-edge:
+        ipv4_address: 172.21.0.3

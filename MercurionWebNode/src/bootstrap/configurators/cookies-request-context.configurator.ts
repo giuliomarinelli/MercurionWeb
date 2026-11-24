@@ -4,6 +4,8 @@ import type { BootstrapDependencies } from '../bootstrap.types'
 import type { SecureCookieConfiguration } from '../../config/config.types'
 import { Environment } from '../../config/config.schema'
 
+const REAL_IP_FOR_LOCAL_TESTING = '45.76.118.254'
+
 export async function configureCookiesAndRequestContext(
   dependencies: Pick<BootstrapDependencies, 'app' | 'fastify' | 'config' | 'env' | 'secureCookie'>
 ): Promise<void> {
@@ -20,6 +22,9 @@ export async function configureCookiesAndRequestContext(
     req.headers['x-user-id'] = undefined
     req.headers['x-scopes'] = undefined
     req.headers['x-new-access-token'] = undefined
+    req.headers['x-mock-ip'] =
+      dependencies.env === Environment.Development || dependencies.env === Environment.Test ?
+        REAL_IP_FOR_LOCAL_TESTING : undefined
 
     let deviceId: string | null
     try {
