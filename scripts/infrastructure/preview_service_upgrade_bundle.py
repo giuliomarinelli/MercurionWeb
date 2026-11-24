@@ -12,7 +12,7 @@ import uuid
 import preview_server_bundle as base
 
 ROOT=Path(__file__).resolve().parents[2]
-VERSIONS={'postgres':'16.16','redis':'8.2.9','nats':'2.12.15','meilisearch':'1.14.0','edge':'1.30.6'}
+VERSIONS={'postgres':'16.16','redis':'8.2.9','nats':'2.12.15','meilisearch':'1.14.0','edge':'1.30.8'}
 USERS={'postgres':'70:70','redis':'999:1000',
        'nats':'10021:10021','meilisearch':'10001:10001','edge':'10101:10101'}
 HELPERS={name+'.py' for name in ('guest_preview_service_upgrade','meili_logical_transfer',

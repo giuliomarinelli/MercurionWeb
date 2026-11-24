@@ -20,17 +20,19 @@ USER 70:70
 FROM redis@sha256:82403a0812a51faf6779f8d0dbe25ea85279ec7d49d24a3c78a65e9d8a87fa5f AS redis
 ARG BUILD_REVISION
 LABEL org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb" org.opencontainers.image.revision=$BUILD_REVISION org.mercurion.runtime.role="redis"
-RUN apk add --no-cache --upgrade zlib=1.4-r0 && chown 999:1000 /data
+RUN apk add --no-cache --upgrade zlib=1.4-r0 libcrypto3=3.5.9-r1 libssl3=3.5.9-r1 \
+    && chown 999:1000 /data
 USER 999:1000
 
 FROM getmeili/meilisearch@sha256:9600db22be3fcbf3d506176d3a73dd70a65c5719d9aa1d2837355b75afb8f4fb AS meilisearch
 ARG BUILD_REVISION
 LABEL org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb" org.opencontainers.image.revision=$BUILD_REVISION org.mercurion.runtime.role="meilisearch"
-RUN apk add --no-cache --upgrade zlib=1.4-r0 && chown 10001:10001 /meili_data
+RUN apk add --no-cache --upgrade zlib=1.4-r0 libcrypto3=3.5.9-r1 libssl3=3.5.9-r1 \
+    && chown 10001:10001 /meili_data
 USER 10001:10001
 ENTRYPOINT ["/bin/meilisearch"]
 
-FROM nginx@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311 AS edge
+FROM nginx:1.30.8-alpine3.24@sha256:6437a63b5c529f0e06162b3f593c0154cff6fa2ea0f94fd7c27928cb399e022d AS edge
 ARG BUILD_REVISION
 LABEL org.opencontainers.image.source="https://github.com/giuliomarinelli/MercurionWeb" org.opencontainers.image.revision=$BUILD_REVISION org.mercurion.runtime.role="edge"
 RUN apk add --no-cache --upgrade zlib=1.4-r0 libxslt=1.1.43-r4 \
